@@ -55,7 +55,8 @@ export const authController = {
       const { passwordHash: _, ...safeUser } = user;
       res.status(201).json({ user: safeUser, token });
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error('[auth.register]', err);
+      res.status(500).json({ error: 'Unable to create your account right now. Please try again later.' });
     }
   },
 
@@ -78,7 +79,8 @@ export const authController = {
       const { passwordHash: _, ...safeUser } = user;
       res.json({ user: safeUser, token });
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error('[auth.login]', err);
+      res.status(500).json({ error: 'Unable to sign in right now. Please try again later.' });
     }
   },
 
@@ -97,7 +99,8 @@ export const authController = {
       const { passwordHash: _, ...safeUser } = user;
       res.json(safeUser);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error('[auth.me]', err);
+      res.status(500).json({ error: 'Unable to load your profile right now. Please try again later.' });
     }
   },
 
@@ -118,7 +121,8 @@ export const authController = {
       const { passwordHash: _, ...safeUser } = updated;
       res.json(safeUser);
     } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      console.error('[auth.updateProfile]', err);
+      res.status(400).json({ error: 'Unable to update your profile. Please check your details and try again.' });
     }
   },
 
@@ -137,7 +141,8 @@ export const authController = {
       });
       res.json(users);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error('[auth.listUsers]', err);
+      res.status(500).json({ error: 'Unable to load users right now. Please try again later.' });
     }
   },
 };
