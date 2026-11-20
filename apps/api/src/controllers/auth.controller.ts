@@ -8,8 +8,11 @@ export const authController = {
   async register(req: AuthenticatedRequest, res: Response) {
     try {
       const { email, password, name, username, timezone } = req.body;
-      if (!email || !name || !username) {
-        return res.status(400).json({ error: 'Email, name, and username are required' });
+      if (!email || !name || !username || !password) {
+        return res.status(400).json({ error: 'Email, name, username, and password are required' });
+      }
+      if (password.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters' });
       }
 
       const existing = await prisma.user.findFirst({
@@ -19,7 +22,7 @@ export const authController = {
         return res.status(400).json({ error: 'User with this email or username already exists' });
       }
 
-      const passwordHash = await bcrypt.hash(password || 'password123', 10);
+      const passwordHash = await bcrypt.hash(password, 10);
       const user = await prisma.user.create({
         data: {
           email,
@@ -63,16 +66,17 @@ export const authController = {
   async login(req: AuthenticatedRequest, res: Response) {
     try {
       const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      if (password) {
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid && password !== 'password123') {
-          return res.status(401).json({ error: 'Invalid credentials' });
-        }
+      const isValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Invalid credentials' });
       }
 
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });

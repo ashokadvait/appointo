@@ -59,17 +59,17 @@ function LoginPageContent() {
     }
   };
 
-  const handleLoginSubmit = async (e?: React.FormEvent, customCreds?: { email: string; password?: string }) => {
+  const handleLoginSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
     setSuccessMsg(null);
     setLoading(true);
 
-    const loginEmail = customCreds ? customCreds.email : email.trim();
-    const loginPassword = customCreds ? (customCreds.password || 'password123') : password;
+    const loginEmail = email.trim();
+    const loginPassword = password;
 
-    if (!loginEmail) {
-      setError('Please enter your email address.');
+    if (!loginEmail || !loginPassword) {
+      setError('Please enter your email address and password.');
       setLoading(false);
       return;
     }
