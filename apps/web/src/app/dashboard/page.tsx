@@ -221,7 +221,7 @@ export default function AppHomePage() {
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="h-8 w-8 animate-spin text-blue-600" />
           <span className="text-xs font-semibold text-slate-500">
-            Initializing Calendly Enterprise Platform...
+            Initializing Appointo Enterprise Platform...
           </span>
         </div>
       </div>

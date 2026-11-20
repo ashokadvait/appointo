@@ -119,8 +119,8 @@ export default function HomePage() {
 
   const faqs = [
     {
-      q: 'How does Calendly prevent double bookings?',
-      a: 'Calendly syncs seamlessly with Google Calendar, Microsoft Outlook, Office 365, and Apple iCloud in real time. Whenever a new event is added to any of your connected calendars, those slots are instantly blocked across all your scheduling links to guarantee zero overlaps.',
+      q: 'How does Appointo prevent double bookings?',
+      a: 'Appointo syncs seamlessly with Google Calendar, Microsoft Outlook, Office 365, and Apple iCloud in real time. Whenever a new event is added to any of your connected calendars, those slots are instantly blocked across all your scheduling links to guarantee zero overlaps.',
     },
     {
       q: 'Can I ask qualifying questions before a meeting is confirmed?',
@@ -128,7 +128,7 @@ export default function HomePage() {
     },
     {
       q: 'How do automated follow-up workflows work?',
-      a: 'Calendly automates your entire meeting lifecycle: instant calendar ICS invites, SMS & email reminders 24 hours and 1 hour before the call to eliminate no-shows, and automated post-meeting survey or thank-you follow-ups.',
+      a: 'Appointo automates your entire meeting lifecycle: instant calendar ICS invites, SMS & email reminders 24 hours and 1 hour before the call to eliminate no-shows, and automated post-meeting survey or thank-you follow-ups.',
     },
     {
       q: 'Can I collect payments for bookings?',
@@ -170,7 +170,7 @@ export default function HomePage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold tracking-tight text-slate-900 text-lg">Calendly</span>
+                <span className="font-extrabold tracking-tight text-slate-900 text-lg">Appointo</span>
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200 uppercase tracking-wider">
                   Enterprise
                 </span>
@@ -303,7 +303,7 @@ export default function HomePage() {
 
           {/* Subtitle */}
           <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Calendly is your hub for scheduling meetings professionally. Connect your calendar,
+            Appointo is your hub for scheduling meetings professionally. Connect your calendar,
             share your custom link, qualify prospects with forms, and let clients pick open times in seconds.
           </p>
 
@@ -364,7 +364,7 @@ export default function HomePage() {
               Experience the booking flow your clients will love
             </h2>
             <p className="text-sm text-slate-600 mt-2">
-              Select an event type, pick a day, choose a slot, and see how friction-free Calendly scheduling is.
+              Select an event type, pick a day, choose a slot, and see how friction-free Appointo scheduling is.
             </p>
           </div>
 
@@ -380,7 +380,7 @@ export default function HomePage() {
                 />
                 <div>
                   <h4 className="text-sm font-extrabold text-slate-900 leading-tight">Alex Morgan</h4>
-                  <p className="text-xs text-slate-500 font-medium">Principal Software Architect • calendly.com/alex</p>
+                  <p className="text-xs text-slate-500 font-medium">Principal Software Architect • appointo.app/alex</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
@@ -572,7 +572,7 @@ export default function HomePage() {
               Everything you need to automate your appointment lifecycle
             </h2>
             <p className="text-base text-slate-600 mt-2">
-              From lead intake to automated reminders and post-meeting follow-ups, Calendly handles every step.
+              From lead intake to automated reminders and post-meeting follow-ups, Appointo handles every step.
             </p>
           </div>
 
@@ -654,7 +654,7 @@ export default function HomePage() {
               Simple 3-Step Setup
             </span>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-3">
-              How Calendly works for you
+              How Appointo works for you
             </h2>
             <p className="text-sm text-slate-600 mt-2">
               Start scheduling seamlessly in fewer than two minutes.
@@ -669,7 +669,7 @@ export default function HomePage() {
               </span>
               <h3 className="text-base font-extrabold text-slate-900 mb-2">Set Your Availability</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Tell Calendly your working hours, preferred buffers between meetings, and daily limits. We automatically block off already-busy calendar blocks.
+                Tell Appointo your working hours, preferred buffers between meetings, and daily limits. We automatically block off already-busy calendar blocks.
               </p>
             </div>
 
@@ -680,7 +680,7 @@ export default function HomePage() {
               </span>
               <h3 className="text-base font-extrabold text-slate-900 mb-2">Share Your Link</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Send your personalized Calendly link via email, message, or embed the booking scheduler directly on your landing page.
+                Send your personalized Appointo link via email, message, or embed the booking scheduler directly on your landing page.
               </p>
             </div>
 
@@ -743,7 +743,7 @@ export default function HomePage() {
                   <span className="text-xs font-bold uppercase tracking-wider text-blue-600">Accelerate Pipeline</span>
                   <h3 className="text-2xl font-black text-slate-900 mt-1">Book demos while buyer intent is at its peak</h3>
                   <p className="text-xs text-slate-600 mt-3 leading-relaxed">
-                    Embed Calendly directly on your marketing site. Qualify leads by company size and budget, then instantly route them to the right account executive.
+                    Embed Appointo directly on your marketing site. Qualify leads by company size and budget, then instantly route them to the right account executive.
                   </p>
                   <ul className="mt-4 space-y-2 text-xs font-medium text-slate-700">
                     <li className="flex items-center gap-2">
@@ -830,7 +830,7 @@ export default function HomePage() {
                   <span className="text-4xl font-black text-emerald-600">$0</span>
                   <span className="text-xs font-bold text-slate-800 mt-1">Unpaid No-Shows</span>
                   <p className="text-[11px] text-slate-500 mt-2">
-                    &quot;I charge $250 for advisory calls. Calendly collects payment before the meeting is confirmed. It completely transformed my practice.&quot;
+                    &quot;I charge $250 for advisory calls. Appointo collects payment before the meeting is confirmed. It completely transformed my practice.&quot;
                   </p>
                 </div>
               </div>
@@ -863,7 +863,7 @@ export default function HomePage() {
                   <span className="text-4xl font-black text-slate-800">4.5 hrs</span>
                   <span className="text-xs font-bold text-slate-800 mt-1">Daily Protected Deep Work</span>
                   <p className="text-[11px] text-slate-500 mt-2">
-                    &quot;Calendly ensures meetings only cluster on my designated afternoons, leaving my mornings pristine for architecture work.&quot;
+                    &quot;Appointo ensures meetings only cluster on my designated afternoons, leaving my mornings pristine for architecture work.&quot;
                   </p>
                 </div>
               </div>
@@ -1135,7 +1135,7 @@ export default function HomePage() {
             Ready to reclaim your calendar and schedule without the back-and-forth?
           </h2>
           <p className="mt-4 text-base text-blue-100 max-w-xl mx-auto">
-            Join over 20 million professionals who schedule meetings faster with Calendly. Setup takes less than 2 minutes.
+            Join over 20 million professionals who schedule meetings faster with Appointo. Setup takes less than 2 minutes.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
@@ -1177,7 +1177,7 @@ export default function HomePage() {
                     <line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
                 </div>
-                <span className="text-lg font-black text-white">Calendly</span>
+                <span className="text-lg font-black text-white">Appointo</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed max-w-sm mb-4">
                 The enterprise-grade scheduling automation platform that eliminates back-and-forth emails. Designed for high-velocity teams and independent professionals.
@@ -1224,7 +1224,7 @@ export default function HomePage() {
           </div>
 
           <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-            <p>© 2026 Calendly Clone Inc. All rights reserved.</p>
+            <p>© 2026 Appointo Inc. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <Link href="/" className="hover:text-slate-400 transition">Privacy Notice</Link>
               <Link href="/" className="hover:text-slate-400 transition">Terms of Service</Link>

@@ -94,7 +94,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold tracking-tight text-slate-900 text-base">Calendly</span>
+              <span className="font-extrabold tracking-tight text-slate-900 text-base">Appointo</span>
               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200 uppercase tracking-wider">
                 Enterprise
               </span>

@@ -50,12 +50,12 @@ export const EmbedSuite: React.FC<EmbedSuiteProps> = ({ eventTypes, onNotify }) 
   style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);"
 ></iframe>`;
 
-  const widgetScriptSnippet = `<!-- Calendly Recreate Universal Widget Badge -->
+  const widgetScriptSnippet = `<!-- Appointo Universal Widget Badge -->
 <link rel="stylesheet" href="${origin}/embed.css" />
 <script src="${origin}/embed.js" async></script>
 <script>
   window.addEventListener('DOMContentLoaded', () => {
-    CalendlyWidget.initBadge({
+    AppointoWidget.initBadge({
       url: '${bookingUrl}',
       text: '${badgeText}',
       color: '${badgeColor}',
@@ -293,7 +293,7 @@ export const EmbedSuite: React.FC<EmbedSuiteProps> = ({ eventTypes, onNotify }) 
             <div className="rounded-xl bg-white overflow-hidden border border-slate-200">
               <iframe
                 src={`/book?slug=${selectedEventTypeSlug}`}
-                title="Calendly Embed Preview"
+                title="Appointo Embed Preview"
                 width="100%"
                 height="560px"
                 className="border-0"

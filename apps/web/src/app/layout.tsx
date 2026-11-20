@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Calendly Recreate — Modern Scheduling & Automated Follow-Ups',
+  title: 'Appointo — Modern Scheduling & Automated Follow-Ups',
   description: 'Enterprise-grade customizable scheduling engine with dynamic slot computation and automated 4-stage follow-up workflows.',
   icons: {
     icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%233b82f6'/><path d='M8 12h16M11 8v4M21 8v4M8 16h16M8 20h10' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>",

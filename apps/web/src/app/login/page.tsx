@@ -147,7 +147,7 @@ function LoginPageContent() {
             </svg>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-slate-900 text-lg tracking-tight">Calendly</span>
+            <span className="font-extrabold text-slate-900 text-lg tracking-tight">Appointo</span>
             <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
               Enterprise
             </span>
@@ -309,7 +309,7 @@ function LoginPageContent() {
                     </>
                   ) : (
                     <>
-                      <span>Sign In to Calendly</span>
+                      <span>Sign In to Appointo</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </>
                   )}
@@ -338,7 +338,7 @@ function LoginPageContent() {
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Personal Booking Link</label>
                   <div className="flex items-center rounded-xl border border-slate-300 bg-slate-50 pl-3 pr-2 py-1 text-xs focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-100 focus-within:bg-white transition">
-                    <span className="text-slate-400 font-semibold text-[11px]">calendly.com/</span>
+                    <span className="text-slate-400 font-semibold text-[11px]">appointo.app/</span>
                     <input
                       type="text"
                       required
@@ -454,7 +454,7 @@ function LoginPageContent() {
               </span>
             ) : (
               <span>
-                Already have a Calendly account?{' '}
+                Already have an Appointo account?{' '}
                 <button
                   type="button"
                   onClick={() => {
@@ -527,7 +527,7 @@ function LoginPageContent() {
 
       {/* Footer */}
       <footer className="w-full py-5 text-center text-[11px] text-slate-400 border-t border-slate-200/60 max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p>© 2026 Calendly Clone Inc. All rights reserved.</p>
+        <p>© 2026 Appointo Inc. All rights reserved.</p>
         <div className="flex items-center gap-4 font-medium text-slate-500">
           <Link href="/" className="hover:text-blue-600 transition">Privacy Policy</Link>
           <Link href="/" className="hover:text-blue-600 transition">Terms of Service</Link>

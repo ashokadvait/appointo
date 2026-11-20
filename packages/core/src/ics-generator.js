@@ -12,11 +12,11 @@ function generateIcs(booking, host) {
     const dtStamp = formatIcsDate(new Date());
     const dtStart = formatIcsDate(booking.startTime);
     const dtEnd = formatIcsDate(booking.endTime);
-    const uid = `${booking.id}@calendly-clone.local`;
+    const uid = `${booking.id}@appointo.app`;
     return [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
-        'PRODID:-//Calendly Recreate//EN',
+        'PRODID:-//Appointo//EN',
         'CALSCALE:GREGORIAN',
         'METHOD:REQUEST',
         'BEGIN:VEVENT',
@@ -25,7 +25,7 @@ function generateIcs(booking, host) {
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
         `SUMMARY:${booking.eventTypeName} - ${host.name} & ${booking.inviteeName}`,
-        `DESCRIPTION:Meeting scheduled via Calendly.\\nAttendee: ${booking.inviteeName} (${booking.inviteeEmail})\\nLocation: ${booking.location}`,
+        `DESCRIPTION:Meeting scheduled via Appointo.\\nAttendee: ${booking.inviteeName} (${booking.inviteeEmail})\\nLocation: ${booking.location}`,
         `LOCATION:${booking.location}`,
         `ORGANIZER;CN="${host.name}":mailto:${host.email}`,
         `ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN="${booking.inviteeName}":mailto:${booking.inviteeEmail}`,
