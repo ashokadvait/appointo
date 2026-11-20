@@ -10,6 +10,7 @@ import { paymentsController } from '../controllers/payments.controller';
 import { crmController } from '../controllers/crm.controller';
 import { analyticsController } from '../controllers/analytics.controller';
 import { workflowsController } from '../controllers/workflows.controller';
+import { customFormsController } from '../controllers/customForms.controller';
 import { optionalAuth, requireAuth } from '../middleware/auth';
 
 const router = Router();
@@ -83,5 +84,12 @@ router.get('/workflows', optionalAuth, workflowsController.list);
 router.put('/workflows', optionalAuth, workflowsController.update);
 router.get('/logs', optionalAuth, workflowsController.listLogs);
 router.post('/webhooks/test', workflowsController.testWebhook);
+
+// 12. Custom Booking Forms
+router.get('/custom-forms', optionalAuth, customFormsController.list);
+router.get('/custom-forms/:id', customFormsController.getOne);
+router.post('/custom-forms', optionalAuth, customFormsController.create);
+router.put('/custom-forms/:id', optionalAuth, customFormsController.update);
+router.delete('/custom-forms/:id', optionalAuth, customFormsController.delete);
 
 export default router;
