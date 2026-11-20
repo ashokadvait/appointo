@@ -1,0 +1,34 @@
+{
+  "name": "@calendly/api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --noEmit",
+    "start": "tsx src/index.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@calendly/types": "*",
+    "@calendly/core": "*",
+    "@prisma/client": "^5.22.0",
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0",
+    "typescript": "^5.7.2",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.17.10"
+  }
+}

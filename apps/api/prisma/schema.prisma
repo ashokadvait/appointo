@@ -1,0 +1,233 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  title        String   @default("Consultant & Scheduling Host")
+  avatar       String   @default("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80")
+  timezone     String   @default("America/New_York")
+  username     String   @unique // e.g. "alex"
+  bio          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  schedules    AvailabilitySchedule[]
+  calendars    ConnectedCalendar[]
+  teamMembers  TeamMember[]
+  eventTypes   EventType[]
+  bookings     Booking[]
+  contacts     Contact[]
+  routingForms RoutingForm[]
+  workflows    Workflow[]
+  activityLogs ActivityLog[]
+}
+
+model AvailabilitySchedule {
+  id                  String   @id @default(cuid())
+  userId              String
+  name                String   @default("Working Hours")
+  isDefault           Boolean  @default(true)
+  timezone            String   @default("America/New_York")
+  daysJson            String   // JSON string of DayAvailability[]
+  overridesJson       String   @default("[]") // JSON string of DateOverride[]
+  bufferNoticeMinutes Int      @default(60)
+  maxDaysAhead        Int      @default(60)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ConnectedCalendar {
+  id             String   @id @default(cuid())
+  userId         String
+  provider       String   // "google", "outlook", "apple"
+  email          String
+  isPrimary      Boolean  @default(false)
+  checkConflicts Boolean  @default(true)
+  addEvents      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  avatar      String?
+  createdAt   DateTime @default(now())
+
+  members    TeamMember[]
+  eventTypes EventType[]
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      String   @default("member") // "owner", "admin", "member"
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+}
+
+model EventType {
+  id                  String   @id @default(cuid())
+  userId              String?
+  teamId              String?
+  slug                String
+  name                String
+  duration            Int      @default(30) // in minutes
+  color               String   @default("#3b82f6")
+  description         String   @default("")
+  locationType        String   @default("google_meet")
+  locationDetails     String   @default("https://meet.google.com/new")
+  bufferBefore        Int      @default(5)
+  bufferAfter         Int      @default(5)
+  schedulingType      String   @default("one_on_one") // "one_on_one", "group", "round_robin", "collective"
+  maxInvitees         Int      @default(1)
+  isPrivate           Boolean  @default(false)
+  requiresPayment     Boolean  @default(false)
+  price               Float    @default(0.0)
+  currency            String   @default("USD")
+  customQuestionsJson String   @default("[]") // JSON string of IntakeQuestion[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team?     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+}
+
+model Booking {
+  id                 String   @id @default(cuid())
+  eventTypeId        String
+  hostUserId         String?
+  inviteeName        String
+  inviteeEmail       String
+  inviteeTimezone    String   @default("America/New_York")
+  startTime          DateTime
+  endTime            DateTime
+  location           String
+  status             String   @default("scheduled") // "scheduled", "completed", "cancelled", "rescheduled", "no_show"
+  cancellationReason String?
+  rescheduleToken    String   @unique @default(cuid())
+  privateNotes       String?
+  customAnswersJson  String   @default("{}")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  eventType EventType   @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  hostUser  User?       @relation(fields: [hostUserId], references: [id], onDelete: SetNull)
+  followUps FollowUp[]
+  payment   Payment?
+}
+
+model FollowUp {
+  id           String    @id @default(cuid())
+  bookingId    String
+  type         String    // "confirmation", "reminder_24h", "reminder_1h", "followup_post", "manual_followup"
+  status       String    @default("pending") // "pending", "sent", "cancelled"
+  channel      String    @default("email")
+  scheduledFor DateTime?
+  sentAt       DateTime?
+  message      String?
+  createdAt    DateTime  @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  bookingId     String    @unique
+  amount        Float
+  currency      String    @default("USD")
+  status        String    @default("pending") // "pending", "paid", "refunded", "failed"
+  provider      String    @default("stripe")
+  transactionId String?
+  customerEmail String
+  createdAt     DateTime  @default(now())
+  refundedAt    DateTime?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  email         String
+  timezone      String?
+  phone         String?
+  tagsJson      String    @default("[]") // JSON string of string[]
+  totalBookings Int       @default(1)
+  totalSpend    Float     @default(0.0)
+  lastMeetingAt DateTime?
+  notesJson     String    @default("[]") // JSON string of ContactNote[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, email])
+}
+
+model RoutingForm {
+  id                  String   @id @default(cuid())
+  userId              String
+  teamId              String?
+  title               String
+  description         String?
+  isPublished         Boolean  @default(true)
+  questionsJson       String   @default("[]") // JSON string of RoutingQuestion[]
+  rulesJson           String   @default("[]") // JSON string of RoutingRule[]
+  fallbackEventTypeId String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Workflow {
+  id        String   @id @default(cuid())
+  userId    String
+  key       String   // "confirmation", "reminder_24h", "reminder_1h", "followup_post"
+  title     String
+  trigger   String
+  channel   String   @default("email")
+  subject   String
+  body      String
+  isEnabled Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  bookingId   String?
+  type        String
+  recipient   String
+  description String
+  timestamp   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

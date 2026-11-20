@@ -1,0 +1,140 @@
+{
+  "host": {
+    "name": "",
+    "email": "",
+    "title": "",
+    "avatar": "",
+    "timezone": "Asia/Kolkata",
+    "workingDays": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "workingHours": {
+      "start": "09:00",
+      "end": "17:00"
+    },
+    "bufferNoticeMinutes": 60,
+    "maxDaysAhead": 30,
+    "defaultSlotDuration": 30
+  },
+  "schedules": [
+    {
+      "id": "default-schedule",
+      "userId": "",
+      "name": "Working Hours (Default)",
+      "isDefault": true,
+      "timezone": "Asia/Kolkata",
+      "defaultSlotDuration": 30,
+      "bufferNoticeMinutes": 60,
+      "maxDaysAhead": 60,
+      "days": [
+        {
+          "dayOfWeek": 1,
+          "enabled": true,
+          "intervals": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        {
+          "dayOfWeek": 2,
+          "enabled": true,
+          "intervals": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        {
+          "dayOfWeek": 3,
+          "enabled": true,
+          "intervals": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        {
+          "dayOfWeek": 4,
+          "enabled": true,
+          "intervals": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        {
+          "dayOfWeek": 5,
+          "enabled": true,
+          "intervals": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        {
+          "dayOfWeek": 6,
+          "enabled": false,
+          "intervals": []
+        },
+        {
+          "dayOfWeek": 0,
+          "enabled": false,
+          "intervals": []
+        }
+      ],
+      "overrides": []
+    }
+  ],
+  "eventTypes": [],
+  "bookings": [],
+  "workflows": {
+    "confirmation": {
+      "id": "wf-confirm",
+      "enabled": true,
+      "title": "Immediate Booking Confirmation",
+      "trigger": "immediately_after_booking",
+      "channel": "email",
+      "subject": "Confirmed: {event_name} with {host_name} on {event_date}",
+      "body": "Hi {invitee_name},\n\nYour meeting has been scheduled!\n\nDate: {event_date} at {event_time}\nJoin Link: {meeting_link}\n\nBest,\n{host_name}"
+    },
+    "reminder_24h": {
+      "id": "wf-remind-24h",
+      "enabled": true,
+      "title": "24-Hour Advance Reminder",
+      "trigger": "24_hours_before",
+      "channel": "email",
+      "subject": "Reminder: {event_name} tomorrow at {event_time}",
+      "body": "Hi {invitee_name},\n\nUpcoming meeting reminder for tomorrow at {event_time}.\nJoin Link: {meeting_link}\n\nSee you then,\n{host_name}"
+    },
+    "reminder_1h": {
+      "id": "wf-remind-1h",
+      "enabled": true,
+      "title": "1-Hour Final Notice Reminder",
+      "trigger": "1_hour_before",
+      "channel": "email",
+      "subject": "Starting in 1 hour: {event_name}",
+      "body": "Hi {invitee_name},\n\nOur call starts in 1 hour!\nJoin Link: {meeting_link}\n\nBest,\n{host_name}"
+    },
+    "followup_post": {
+      "id": "wf-followup-post",
+      "enabled": true,
+      "title": "Post-Meeting Follow-Up & Action Items",
+      "trigger": "1_hour_after",
+      "channel": "email",
+      "subject": "Thank you for meeting! Next steps from {host_name}",
+      "body": "Hi {invitee_name},\n\nThank you for taking the time to connect today regarding {event_name}!\n\nBest regards,\n{host_name}"
+    }
+  },
+  "activityLogs": [],
+  "customForms": []
+}

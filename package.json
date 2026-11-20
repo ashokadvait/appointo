@@ -1,0 +1,39 @@
+{
+  "name": "calendly-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack customizable scheduling engine & follow-up automation platform inspired by Calendly",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n \"api,web\" -c \"magenta,cyan\" \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev --workspace=@calendly/api",
+    "dev:web": "npm run dev --workspace=@calendly/web",
+    "build": "npm run prisma:generate && npm run build --workspace=@calendly/api && npm run build --workspace=@calendly/web",
+    "start": "concurrently \"npm run start --workspace=@calendly/api\" \"npm run start --workspace=@calendly/web\"",
+    "prisma:generate": "npm run prisma:generate --workspace=@calendly/api",
+    "prisma:push": "npm run prisma:push --workspace=@calendly/api",
+    "prisma:seed": "npm run prisma:seed --workspace=@calendly/api",
+    "clean:ports": "fuser -k 3000/tcp 4000/tcp || true",
+    "legacy:server": "node server.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "keywords": [
+    "calendly",
+    "scheduling",
+    "calendar",
+    "follow-up",
+    "monorepo",
+    "nextjs",
+    "tailwind",
+    "typescript",
+    "prisma",
+    "express"
+  ],
+  "author": "Antigravity Pair Programmer",
+  "license": "MIT"
+}

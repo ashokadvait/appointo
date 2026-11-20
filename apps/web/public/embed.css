@@ -1,0 +1,8 @@
+/* Calendly Recreate Universal Widget Stylesheet */
+#calendly-recreate-badge {
+  user-select: none;
+  -webkit-user-select: none;
+}
+#calendly-recreate-overlay {
+  box-sizing: border-box;
+}

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendly Recreate — Customizable Scheduling & Follow-Up Automation</title>
+  <meta name="description" content="A powerful, highly customizable scheduling platform with dynamic slot calculation and automated follow-up workflows so you never miss a client or meeting.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%233b82f6'/><path d='M8 12h16M11 8v4M21 8v4M8 16h16M8 20h10' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="app-header" id="app-header">
+    <div class="header-inner">
+      <div class="brand-container">
+        <div class="brand-logo">
+          <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="url(#brand-grad)" />
+            <path d="M7 13H25M11 8V13M21 8V13M7 18H25M7 23H17" stroke="white" stroke-width="2.2" stroke-linecap="round" />
+            <defs>
+              <linearGradient id="brand-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#3b82f6" />
+                <stop offset="1" stop-color="#6366f1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Calendly Recreate</span>
+          <span class="brand-tag">Auto Follow-Up</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" id="main-nav-tabs" role="tablist">
+        <button class="nav-tab active" id="tab-btn-dashboard" data-tab="dashboard" role="tab" aria-selected="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          Event Types
+        </button>
+        <button class="nav-tab" id="tab-btn-booking" data-tab="booking" role="tab" aria-selected="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Booking Wizard
+        </button>
+        <button class="nav-tab" id="tab-btn-followups" data-tab="followups" role="tab" aria-selected="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+          Follow-Up Hub <span class="badge-pulse" id="followup-alert-count">2</span>
+        </button>
+        <button class="nav-tab" id="tab-btn-workflows" data-tab="workflows" role="tab" aria-selected="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+          Workflows & Timing
+        </button>
+        <button class="nav-tab" id="tab-btn-embed" data-tab="embed" role="tab" aria-selected="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Embed & Share
+        </button>
+      </nav>
+
+      <!-- Host Profile Indicator -->
+      <div class="host-pill" id="host-pill">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Host Avatar" class="host-avatar" id="host-avatar-img">
+        <div class="host-meta">
+          <span class="host-name" id="host-display-name">Alex Morgan</span>
+          <span class="host-status"><span class="status-dot"></span> Available Today</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-main">
+
+    <!-- TAB 1: EVENT TYPES DASHBOARD -->
+    <section class="tab-pane active" id="pane-dashboard" role="tabpanel">
+      <div class="dashboard-banner">
+        <div class="banner-content">
+          <span class="badge-accent">Scheduling Command Center</span>
+          <h1 class="page-title">Personalized Booking & Intelligent Follow-Ups</h1>
+          <p class="page-subtitle">Configure your meeting templates, define custom intake questions, set buffer times, and automate every reminder so zero leads or meetings get dropped.</p>
+        </div>
+        <div class="banner-actions">
+          <button class="btn btn-primary" id="btn-create-event-type">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Event Type
+          </button>
+          <button class="btn btn-secondary" id="btn-quick-preview-booking">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview Client View
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Ribbon -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Active Bookings</span>
+            <div class="metric-icon icon-blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
+          </div>
+          <div class="metric-value" id="metric-active-bookings">3</div>
+          <div class="metric-footer text-emerald">↑ 100% confirmation rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Reminders Dispatched</span>
+            <div class="metric-icon icon-indigo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          </div>
+          <div class="metric-value" id="metric-reminders-sent">5</div>
+          <div class="metric-footer text-indigo">24h & 1h pre-meeting notices</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Follow-Ups Completed</span>
+            <div class="metric-icon icon-emerald"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+          <div class="metric-value" id="metric-followups-sent">1</div>
+          <div class="metric-footer text-emerald">Zero missed action items</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Timezone Sync</span>
+            <div class="metric-icon icon-amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          </div>
+          <div class="metric-value" id="metric-host-tz">America/New_York</div>
+          <div class="metric-footer">Working hours: 09:00 - 17:00</div>
+        </div>
+      </div>
+
+      <!-- Event Types Card Deck -->
+      <div class="section-title-bar">
+        <h2>Your Event Types</h2>
+        <span class="subtext">Invitees can pick an event to see available dates and time slots</span>
+      </div>
+
+      <div class="event-types-grid" id="event-types-list">
+        <!-- Rendered via app.js -->
+        <div class="card-skeleton">Loading event types...</div>
+      </div>
+    </section>
+
+
+    <!-- TAB 2: INTERACTIVE PUBLIC BOOKING WIZARD -->
+    <section class="tab-pane" id="pane-booking" role="tabpanel">
+      <div class="booking-wizard-wrapper">
+        <div class="booking-card" id="booking-card-main">
+
+          <!-- Left Column: Event Type Summary -->
+          <div class="booking-sidebar">
+            <div class="event-host-badge">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Host" class="avatar-small">
+              <span id="booking-host-name">Alex Morgan</span>
+            </div>
+            <h2 class="booking-event-title" id="booking-event-title">30-Minute Discovery & Strategy Call</h2>
+            <div class="booking-event-info">
+              <div class="info-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="booking-event-duration">30 mins</span>
+              </div>
+              <div class="info-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                <span id="booking-event-location">Web conferencing details provided upon confirmation</span>
+              </div>
+              <div class="info-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                <span id="booking-event-buffers">10 min buffer before & after</span>
+              </div>
+            </div>
+            <p class="booking-event-desc" id="booking-event-desc">
+              Deep dive into your product requirements, architectural scope, and delivery milestones.
+            </p>
+
+            <div class="event-picker-dropdown">
+              <label for="booking-event-select" class="form-label">Switch Event Type:</label>
+              <select id="booking-event-select" class="form-select">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <!-- Timezone selector -->
+            <div class="timezone-box">
+              <label for="booking-timezone-select" class="form-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Time zone
+              </label>
+              <select id="booking-timezone-select" class="form-select timezone-select">
+                <option value="America/New_York">Eastern Time (US & Canada)</option>
+                <option value="America/Chicago">Central Time (US & Canada)</option>
+                <option value="America/Denver">Mountain Time (US & Canada)</option>
+                <option value="America/Los_Angeles">Pacific Time (US & Canada)</option>
+                <option value="Europe/London">London (GMT / BST)</option>
+                <option value="Europe/Paris">Paris, Berlin, Rome (CET)</option>
+                <option value="Asia/Kolkata" selected>India Standard Time (IST)</option>
+                <option value="Asia/Tokyo">Tokyo (JST)</option>
+                <option value="Australia/Sydney">Sydney (AEST)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Middle Column: Interactive Calendar Grid -->
+          <div class="booking-calendar-section" id="booking-calendar-section">
+            <div class="calendar-header">
+              <h3 class="calendar-month-title" id="calendar-month-title">November 2026</h3>
+              <div class="calendar-nav-buttons">
+                <button class="cal-nav-btn" id="btn-prev-month" aria-label="Previous month">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button class="cal-nav-btn" id="btn-next-month" aria-label="Next month">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Weekday headers -->
+            <div class="calendar-weekdays">
+              <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+            </div>
+
+            <!-- Dynamic days grid -->
+            <div class="calendar-days-grid" id="calendar-days-grid">
+              <!-- Rendered via app.js -->
+            </div>
+
+            <div class="calendar-legend">
+              <span class="legend-item"><span class="legend-dot available"></span> Available</span>
+              <span class="legend-item"><span class="legend-dot selected"></span> Selected</span>
+              <span class="legend-item"><span class="legend-dot past"></span> Unavailable</span>
+            </div>
+          </div>
+
+          <!-- Right Column: Time Slots List -->
+          <div class="booking-slots-section" id="booking-slots-section">
+            <div class="slots-header">
+              <h3 class="slots-date-label" id="slots-date-label">Select a Date</h3>
+              <span class="slots-subtext" id="slots-subtext">Click an available date on the calendar</span>
+            </div>
+
+            <div class="slots-list" id="slots-list-container">
+              <div class="slots-empty-state" id="slots-empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <p>Pick a date from the calendar to view calculated slots with buffer times.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: Booking Form Modal/Overlay within Wizard -->
+          <div class="booking-form-overlay hidden" id="booking-form-overlay">
+            <div class="booking-form-card">
+              <button class="btn-back" id="btn-back-to-slots">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Change Date / Time
+              </button>
+
+              <div class="selected-slot-banner">
+                <div class="slot-badge">Selected Time</div>
+                <div class="slot-banner-details">
+                  <strong id="form-display-datetime">Wednesday, Nov 4, 2026 at 2:00 PM</strong>
+                  <span id="form-display-duration">30 minutes · India Standard Time</span>
+                </div>
+              </div>
+
+              <form id="booking-submission-form" class="booking-form">
+                <h3 class="form-title">Enter Details & Questions</h3>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="input-invitee-name" class="form-label">Your Name *</label>
+                    <input type="text" id="input-invitee-name" class="form-input" placeholder="e.g. Jordan Miller" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="input-invitee-email" class="form-label">Email Address *</label>
+                    <input type="email" id="input-invitee-email" class="form-input" placeholder="you@company.com" required>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="input-guest-emails" class="form-label">Add Guests (Optional)</label>
+                  <input type="text" id="input-guest-emails" class="form-input" placeholder="colleague@company.com (comma separated)">
+                </div>
+
+                <!-- Custom Intake Questions Container -->
+                <div class="custom-questions-box" id="custom-questions-container">
+                  <!-- Injected based on event type -->
+                </div>
+
+                <div class="form-group">
+                  <label for="input-notes" class="form-label">Please share anything that will help prepare for our meeting:</label>
+                  <textarea id="input-notes" class="form-textarea" rows="3" placeholder="Context, background, questions..."></textarea>
+                </div>
+
+                <div class="form-footer">
+                  <button type="submit" class="btn btn-primary btn-block" id="btn-confirm-schedule">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Schedule Event
+                  </button>
+                  <p class="form-disclaimer">By scheduling, automated calendar invites (.ics) and follow-up reminders will be configured automatically.</p>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- STEP 3: Booking Confirmed Success Screen -->
+          <div class="booking-success-overlay hidden" id="booking-success-overlay">
+            <div class="success-card">
+              <div class="success-icon-wrap">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <h2 class="success-title">You are scheduled!</h2>
+              <p class="success-subtitle">A calendar invitation and automated confirmation details have been sent to your email.</p>
+
+              <div class="confirmation-summary-box">
+                <div class="summary-row">
+                  <span class="summary-label">Event:</span>
+                  <strong id="conf-event-name">30-Minute Discovery & Strategy Call</strong>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">With:</span>
+                  <span id="conf-host-name">Alex Morgan</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Date & Time:</span>
+                  <span id="conf-datetime">Nov 4, 2026 · 2:00 PM (IST)</span>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Meeting URL:</span>
+                  <a href="#" target="_blank" id="conf-meeting-url" class="link-highlight">Open Meeting</a>
+                </div>
+                <div class="summary-row">
+                  <span class="summary-label">Follow-Up Engine:</span>
+                  <span class="badge-emerald">4 Automated Reminders Scheduled</span>
+                </div>
+              </div>
+
+              <!-- Instant Calendar Integration Actions -->
+              <div class="calendar-action-buttons">
+                <a href="#" id="btn-download-ics" class="btn btn-outline" download>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Download iCal (.ics)
+                </a>
+                <a href="#" target="_blank" id="btn-add-google-cal" class="btn btn-outline">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Add to Google Calendar
+                </a>
+                <a href="#" target="_blank" id="btn-add-outlook-cal" class="btn btn-outline">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Add to Outlook
+                </a>
+              </div>
+
+              <div class="success-footer-action">
+                <button class="btn btn-primary" id="btn-schedule-another">Schedule Another Meeting</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- TAB 3: FOLLOW-UP COMMAND CENTER ("NEVER MISS ANYTHING") -->
+    <section class="tab-pane" id="pane-followups" role="tabpanel">
+      <div class="followup-header-bar">
+        <div>
+          <h2>Automated Follow-Up Command Center</h2>
+          <p class="subtext">Track every meeting's lifecycle, monitor queued reminders, send 1-click follow-ups, and avoid no-shows.</p>
+        </div>
+        <div class="followup-filter-bar">
+          <button class="filter-pill active" data-filter="all">All Bookings</button>
+          <button class="filter-pill" data-filter="scheduled">Upcoming (Active)</button>
+          <button class="filter-pill" data-filter="needs_followup">Needs Follow-Up</button>
+          <button class="filter-pill" data-filter="completed">Completed</button>
+        </div>
+      </div>
+
+      <!-- Follow-Up Engine Status Tracker Cards -->
+      <div class="pipeline-flow-cards">
+        <div class="pipeline-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Immediate Confirmation</strong>
+            <span>Sent upon booking with .ics calendar file</span>
+          </div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>24-Hour Notice</strong>
+            <span>Agenda check & reschedule guard</span>
+          </div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>1-Hour Final Call</strong>
+            <span>Direct video link & prep checklist</span>
+          </div>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <strong>Post-Meeting Action</strong>
+            <span>Summary, survey link, & next milestones</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bookings Table -->
+      <div class="data-table-container">
+        <table class="data-table" id="bookings-table">
+          <thead>
+            <tr>
+              <th>Attendee</th>
+              <th>Event Type</th>
+              <th>Scheduled Time</th>
+              <th>Lifecycle Stage</th>
+              <th>Automated Follow-Up Pipeline</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookings-table-body">
+            <!-- Populated via app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Real-time Activity Log Drawer -->
+      <div class="activity-log-section">
+        <div class="activity-header">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Live Follow-Up & Dispatch Activity
+          </h3>
+          <span class="subtext">Every automated message and manual dispatch logged in real-time</span>
+        </div>
+        <div class="activity-stream" id="activity-stream-list">
+          <!-- Populated via app.js -->
+        </div>
+      </div>
+    </section>
+
+
+    <!-- TAB 4: WORKFLOWS & TIMING CUSTOMIZATION -->
+    <section class="tab-pane" id="pane-workflows" role="tabpanel">
+      <div class="workflows-header-bar">
+        <div>
+          <h2>Follow-Up Workflows & Automation Rules</h2>
+          <p class="subtext">Customize automated email templates, schedule timings, and configure webhook integrations.</p>
+        </div>
+        <button class="btn btn-primary" id="btn-save-workflows">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save All Workflow Changes
+        </button>
+      </div>
+
+      <!-- Variable Reference Ribbon -->
+      <div class="variable-tags-bar">
+        <span class="var-tag-title">Available Placeholders:</span>
+        <span class="var-badge" onclick="navigator.clipboard.writeText('{invitee_name}')">{invitee_name}</span>
+        <span class="var-badge" onclick="navigator.clipboard.writeText('{host_name}')">{host_name}</span>
+        <span class="var-badge" onclick="navigator.clipboard.writeText('{event_name}')">{event_name}</span>
+        <span class="var-badge" onclick="navigator.clipboard.writeText('{event_date}')">{event_date}</span>
+        <span class="var-badge" onclick="navigator.clipboard.writeText('{event_time}')">{event_time}</span>
+        <span class="var-badge" onclick="navigator.clipboard.writeText('{meeting_link}')">{meeting_link}</span>
+        <span class="var-badge" onclick="navigator.clipboard.writeText('{reschedule_url}')">{reschedule_url}</span>
+      </div>
+
+      <div class="workflow-cards-stack" id="workflow-cards-stack">
+        <!-- Injected via app.js -->
+      </div>
+
+      <!-- Webhook Dispatch & Integration Simulator -->
+      <div class="webhook-tester-card">
+        <div class="tester-header">
+          <div class="icon-wrap-indigo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M6 8H5a4 4 0 0 0 0 8h1"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          </div>
+          <div>
+            <h3>Webhook Dispatcher (Zapier, Slack, or CRM)</h3>
+            <p class="subtext">Forward booking events and follow-up triggers to external webhooks</p>
+          </div>
+        </div>
+        <div class="webhook-form-row">
+          <input type="url" id="input-webhook-url" class="form-input" placeholder="https://webhook.site/your-unique-id or Zapier Webhook URL" value="https://api.example.com/webhooks/calendly">
+          <button class="btn btn-secondary" id="btn-test-webhook">Test Webhook Dispatch</button>
+        </div>
+        <div class="webhook-output-box hidden" id="webhook-output-box">
+          <pre id="webhook-output-pre"></pre>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- TAB 5: EMBED & SHARE SUITE -->
+    <section class="tab-pane" id="pane-embed" role="tabpanel">
+      <div class="embed-header-bar">
+        <h2>Embed & Share Booking Pages</h2>
+        <p class="subtext">Inspired by Calendly's universal widget, easily drop your booking wizard into any website, blog, or application.</p>
+      </div>
+
+      <div class="embed-options-grid">
+        <!-- Direct Link Card -->
+        <div class="embed-card">
+          <div class="embed-card-header">
+            <div class="embed-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+            <div>
+              <h3>Direct Shareable Link</h3>
+              <p class="subtext">Send this link in emails, social bios, or messages</p>
+            </div>
+          </div>
+          <div class="copy-field">
+            <input type="text" id="share-link-input" class="form-input" readonly value="http://localhost:3000/#book">
+            <button class="btn btn-secondary" id="btn-copy-share-link">Copy Link</button>
+          </div>
+        </div>
+
+        <!-- Inline iFrame Card -->
+        <div class="embed-card">
+          <div class="embed-card-header">
+            <div class="embed-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+            <div>
+              <h3>Inline Embed (iFrame)</h3>
+              <p class="subtext">Embed the scheduler directly into your page layout</p>
+            </div>
+          </div>
+          <div class="code-block">
+            <pre id="code-iframe-embed">&lt;iframe src="http://localhost:3000/#book" width="100%" height="700" frameborder="0" style="border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);"&gt;&lt;/iframe&gt;</pre>
+            <button class="btn btn-secondary btn-sm copy-code-btn" id="btn-copy-iframe">Copy HTML</button>
+          </div>
+        </div>
+
+        <!-- Floating Popup Widget -->
+        <div class="embed-card">
+          <div class="embed-card-header">
+            <div class="embed-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></div>
+            <div>
+              <h3>Floating Popup Button Widget</h3>
+              <p class="subtext">Add a sleek floating "Schedule Time with Me" badge button</p>
+            </div>
+          </div>
+          <div class="code-block">
+            <pre id="code-widget-embed">&lt;!-- Calendly Recreate Widget --&gt;
+&lt;link href="http://localhost:3000/style.css" rel="stylesheet"&gt;
+&lt;script src="http://localhost:3000/embed.js" async&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.addEventListener('load', function() {
+    CalendlyRecreate.initBadgeWidget({
+      url: 'http://localhost:3000/#book',
+      text: 'Schedule Time With Me',
+      color: '#3b82f6',
+      textColor: '#ffffff'
+    });
+  });
+&lt;/script&gt;</pre>
+            <button class="btn btn-secondary btn-sm copy-code-btn" id="btn-copy-widget">Copy Widget Script</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: CREATE / EDIT EVENT TYPE -->
+  <div class="modal-backdrop hidden" id="modal-event-type">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-event-type-title">New Event Type</h3>
+        <button class="modal-close-btn" id="btn-close-modal-event">&times;</button>
+      </div>
+      <form id="form-event-type" class="modal-form">
+        <input type="hidden" id="edit-event-id" value="">
+
+        <div class="form-group">
+          <label for="event-title-input" class="form-label">Event Name *</label>
+          <input type="text" id="event-title-input" class="form-input" placeholder="e.g. 45-Minute Product Strategy" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-duration-input" class="form-label">Duration (Minutes) *</label>
+            <select id="event-duration-input" class="form-select">
+              <option value="15">15 minutes</option>
+              <option value="30" selected>30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="event-color-input" class="form-label">Card Theme Color</label>
+            <div class="color-picker-row">
+              <input type="color" id="event-color-input" class="form-color" value="#3b82f6">
+              <span id="event-color-hex" class="color-hex-text">#3b82f6</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="event-desc-input" class="form-label">Description / Instructions for Invitees</label>
+          <textarea id="event-desc-input" class="form-textarea" rows="2" placeholder="Explain what will be covered and how to prepare..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-loc-type" class="form-label">Location Type</label>
+            <select id="event-loc-type" class="form-select">
+              <option value="google_meet">Google Meet</option>
+              <option value="zoom">Zoom</option>
+              <option value="phone">Phone Call</option>
+              <option value="in_person">In-Person Meeting</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="event-loc-details" class="form-label">Meeting URL or Instructions</label>
+            <input type="text" id="event-loc-details" class="form-input" placeholder="https://meet.google.com/..." value="https://meet.google.com/new">
+          </div>
+        </div>
+
+        <!-- Buffer Times -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-buffer-before" class="form-label">Buffer Time Before (min)</label>
+            <input type="number" id="event-buffer-before" class="form-input" value="5" min="0" step="5">
+          </div>
+          <div class="form-group">
+            <label for="event-buffer-after" class="form-label">Buffer Time After (min)</label>
+            <input type="number" id="event-buffer-after" class="form-input" value="10" min="0" step="5">
+          </div>
+        </div>
+
+        <!-- Custom Questions Builder -->
+        <div class="questions-builder-box">
+          <div class="builder-header">
+            <h4>Invitee Intake Questions</h4>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-builder-question">+ Add Question</button>
+          </div>
+          <div class="builder-questions-list" id="builder-questions-list">
+            <!-- Questions rendered here -->
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-event-type">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-event-type">Save Event Type</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DISPATCH MANUAL FOLLOW-UP -->
+  <div class="modal-backdrop hidden" id="modal-dispatch-followup">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Dispatch Follow-Up / Reminder</h3>
+        <button class="modal-close-btn" id="btn-close-modal-dispatch">&times;</button>
+      </div>
+      <form id="form-dispatch-followup" class="modal-form">
+        <input type="hidden" id="dispatch-booking-id" value="">
+        <div class="form-group">
+          <label class="form-label">Recipient</label>
+          <input type="text" id="dispatch-recipient" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label for="dispatch-type-select" class="form-label">Template / Channel</label>
+          <select id="dispatch-type-select" class="form-select">
+            <option value="reminder_urgent">Urgent Pre-Meeting Reminder (with Join Link)</option>
+            <option value="followup_post">Post-Meeting Summary & Next Steps</option>
+            <option value="no_show_recovery">Missed Call / Reschedule Prompt</option>
+            <option value="custom_message">Custom Written Follow-Up</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dispatch-message-text" class="form-label">Message Preview</label>
+          <textarea id="dispatch-message-text" class="form-textarea" rows="4"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-dispatch">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-send-dispatch">Send Follow-Up Now</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Popups -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

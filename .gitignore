@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Next.js & Build Outputs
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Database (SQLite / Prisma local dev)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing & Coverage
+coverage/
+
+# Deployment & Caches
+.vercel
+.turbo
+.cache
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+*.pem
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
