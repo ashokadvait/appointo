@@ -11,6 +11,9 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    if (process.env.VERCEL) {
+      return [];
+    }
     return {
       beforeFiles: [],
       afterFiles: [],
