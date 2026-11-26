@@ -40,7 +40,23 @@ function LoginPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [resetStep, setResetStep] = useState<'email' | 'password' | 'done'>('email');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const tokenFromUrl = searchParams.get('resetToken');
+    if (tokenFromUrl) {
+      setResetToken(tokenFromUrl);
+      setResetStep('password');
+      setShowForgotPassword(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     try {
@@ -257,8 +273,13 @@ function LoginPageContent() {
                     <button
                       type="button"
                       onClick={() => {
+                        setResetEmail(email);
+                        setResetToken('');
+                        setNewPassword('');
+                        setConfirmNewPassword('');
+                        setResetError(null);
+                        setResetStep('email');
                         setShowForgotPassword(true);
-                        setResetEmailSent(false);
                       }}
                       className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition"
                     >
@@ -477,30 +498,72 @@ function LoginPageContent() {
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
             <h3 className="text-base font-bold text-slate-900">Reset your password</h3>
             <p className="text-xs text-slate-500 mt-1">
-              Enter your account email and we&apos;ll send you instructions to reset your password.
+              {resetStep === 'email' && 'Enter your account email to verify your account and set a new password.'}
+              {resetStep === 'password' && 'Choose a new password for your Appointo account.'}
+              {resetStep === 'done' && 'Your password has been updated successfully.'}
             </p>
 
-            {resetEmailSent ? (
+            {resetError && (
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800">
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+                <span className="font-medium">{resetError}</span>
+              </div>
+            )}
+
+            {resetStep === 'done' && (
               <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
                 <p className="font-bold flex items-center gap-1.5 mb-1">
                   <Check className="h-4 w-4 text-emerald-600" />
-                  Password reset link sent!
+                  Password changed!
                 </p>
-                <p>Check your inbox for instructions to reset your password.</p>
+                <p>You can now sign in with your new password.</p>
                 <button
                   type="button"
-                  onClick={() => setShowForgotPassword(false)}
-                  className="mt-3 w-full rounded-lg bg-emerald-600 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition"
+                  onClick={() => {
+                    if (resetEmail) setEmail(resetEmail);
+                    setPassword('');
+                    setMode('login');
+                    setShowForgotPassword(false);
+                  }}
+                  className="mt-3 w-full rounded-lg bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition"
                 >
                   Back to Sign In
                 </button>
               </div>
-            ) : (
-              <div className="mt-4 space-y-3">
+            )}
+
+            {resetStep === 'email' && (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setResetError(null);
+                  if (!resetEmail.trim()) {
+                    setResetError('Please enter your email address.');
+                    return;
+                  }
+                  setResetLoading(true);
+                  try {
+                    const res = await api.forgotPassword(resetEmail.trim());
+                    if (res.resetToken) {
+                      setResetToken(res.resetToken);
+                      setResetStep('password');
+                    } else {
+                      setResetStep('done');
+                    }
+                  } catch (err: any) {
+                    setResetError(err.message || 'Could not verify your email.');
+                  } finally {
+                    setResetLoading(false);
+                  }
+                }}
+                className="mt-4 space-y-3"
+              >
                 <input
                   type="email"
-                  defaultValue={email}
-                  placeholder="Enter your email"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="Enter your account email"
                   className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
                 <div className="flex gap-2">
@@ -512,14 +575,83 @@ function LoginPageContent() {
                     Cancel
                   </button>
                   <button
-                    type="button"
-                    onClick={() => setResetEmailSent(true)}
-                    className="flex-1 rounded-xl bg-blue-600 py-2 text-xs font-bold text-white hover:bg-blue-700"
+                    type="submit"
+                    disabled={resetLoading}
+                    className="flex-1 rounded-xl bg-blue-600 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-60"
                   >
-                    Send Reset Link
+                    {resetLoading ? 'Verifying...' : 'Continue'}
                   </button>
                 </div>
-              </div>
+              </form>
+            )}
+
+            {resetStep === 'password' && (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setResetError(null);
+                  if (newPassword.length < 6) {
+                    setResetError('Password must be at least 6 characters long.');
+                    return;
+                  }
+                  if (newPassword !== confirmNewPassword) {
+                    setResetError('Passwords do not match.');
+                    return;
+                  }
+                  setResetLoading(true);
+                  try {
+                    await api.resetPassword(resetToken, newPassword);
+                    setResetStep('done');
+                  } catch (err: any) {
+                    setResetError(err.message || 'Unable to reset password.');
+                  } finally {
+                    setResetLoading(false);
+                  }
+                }}
+                className="mt-4 space-y-3"
+              >
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New password (min 6 characters)"
+                    className="w-full rounded-xl border border-slate-300 px-3 pr-9 py-2 text-xs text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  required
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="flex-1 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="flex-1 rounded-xl bg-blue-600 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-60"
+                  >
+                    {resetLoading ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              </form>
             )}
           </div>
         </div>

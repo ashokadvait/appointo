@@ -112,6 +112,28 @@ export const api = {
     return authData;
   },
 
+  async forgotPassword(email: string): Promise<{ message: string; resetToken?: string }> {
+    const res = await authFetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to verify account email');
+    return data;
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const res = await authFetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+    return data;
+  },
+
   async me(): Promise<User> {
     const res = await authFetch('/api/auth/me');
     if (!res.ok) throw new Error('Failed to load profile');
