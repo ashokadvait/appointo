@@ -39,7 +39,7 @@ router.put('/event-types/:id', optionalAuth, eventTypesController.update);
 router.delete('/event-types/:id', optionalAuth, eventTypesController.delete);
 
 // 4. Booking Engine & Available Slots
-router.get('/available-slots', slotsController.getAvailableSlots);
+router.get('/available-slots', optionalAuth, slotsController.getAvailableSlots);
 
 // 5. Appointment Management
 router.get('/bookings', optionalAuth, bookingsController.list);

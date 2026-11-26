@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { prisma } from '../prisma';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export const slotsController = {
-  async getAvailableSlots(req: Request, res: Response) {
+  async getAvailableSlots(req: AuthenticatedRequest, res: Response) {
     try {
       const { eventTypeId, date, timezone, slotDuration } = req.query;
 
@@ -10,27 +11,32 @@ export const slotsController = {
         return res.status(400).json({ error: 'eventTypeId and date are required' });
       }
 
-      const eventType = await prisma.eventType.findFirst({
-        where: {
-          OR: [{ id: String(eventTypeId) }, { slug: String(eventTypeId) }],
-        },
-        include: {
-          user: true,
-          team: {
-            include: {
-              members: { include: { user: true } },
-            },
-          },
-        },
-      });
+      const requestedId = String(eventTypeId);
+      const isDefaultFallback = requestedId === 'default';
 
-      if (!eventType) {
+      const eventType = isDefaultFallback
+        ? null
+        : await prisma.eventType.findFirst({
+            where: {
+              OR: [{ id: requestedId }, { slug: requestedId }],
+            },
+            include: {
+              user: true,
+              team: {
+                include: {
+                  members: { include: { user: true } },
+                },
+              },
+            },
+          });
+
+      if (!eventType && !isDefaultFallback) {
         return res.status(404).json({ error: 'Event type not found', slots: [] });
       }
 
       // Determine Host User
-      let hostUser = eventType.user;
-      if (!hostUser && eventType.team?.members.length) {
+      let hostUser = eventType?.user || req.user || null;
+      if (!hostUser && eventType?.team?.members.length) {
         hostUser = eventType.team.members[0].user;
       }
       if (!hostUser) {
@@ -103,22 +109,25 @@ export const slotsController = {
       };
 
       // Load existing active bookings for host collision check
-      const activeBookings = await prisma.booking.findMany({
-        where: {
-          OR: [
-            { eventTypeId: eventType.id },
-            { hostUserId: hostUser?.id },
-          ],
-          status: 'scheduled',
-        },
-      });
+      const bookingFilters: any[] = [];
+      if (eventType?.id) bookingFilters.push({ eventTypeId: eventType.id });
+      if (hostUser?.id) bookingFilters.push({ hostUserId: hostUser.id });
+
+      const activeBookings = bookingFilters.length
+        ? await prisma.booking.findMany({
+            where: {
+              OR: bookingFilters,
+              status: 'scheduled',
+            },
+          })
+        : [];
 
       const chosenDurationMinutes = Number(eventType?.duration) > 0
-        ? Number(eventType.duration)
+        ? Number(eventType!.duration)
         : (slotDuration ? Number(slotDuration) : ((schedule as any)?.defaultSlotDuration || 15));
       const durationMs = chosenDurationMinutes * 60 * 1000;
-      const bufferBeforeMs = (eventType.bufferBefore || 0) * 60 * 1000;
-      const bufferAfterMs = (eventType.bufferAfter || 0) * 60 * 1000;
+      const bufferBeforeMs = (eventType?.bufferBefore || 0) * 60 * 1000;
+      const bufferAfterMs = (eventType?.bufferAfter || 0) * 60 * 1000;
       const noticeMs = (schedule?.bufferNoticeMinutes ?? 30) * 60 * 1000;
       const now = Date.now();
 
@@ -173,7 +182,7 @@ export const slotsController = {
               slots.push({
                 timeUtc: slotUtc,
                 timeFormatted,
-                duration: eventType.duration,
+                duration: chosenDurationMinutes,
                 availableHostUserId: hostUser?.id,
               });
             }
