@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Booking, EventType } from '@calendly/types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Booking, EventType, AvailableSlot } from '@calendly/types';
 import { api } from '@/lib/api-client';
 import { formatDate, formatTime, getRelativeTimeString } from '@/lib/utils';
 import { useDialog } from '@/components/ui/dialog-provider';
@@ -26,6 +26,9 @@ import {
   Globe,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
   X,
   Plus,
   RefreshCw,
@@ -58,6 +61,30 @@ export const ScheduledAppointmentsSection: React.FC<ScheduledAppointmentsSection
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedLinkBookingId, setCopiedLinkBookingId] = useState<string | null>(null);
   const [expandedAnswers, setExpandedAnswers] = useState<Record<string, boolean>>({});
+
+  // Calendar & Future Slots State
+  const toLocalDateStr = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+  const todayStr = useMemo(() => toLocalDateStr(new Date()), []);
+  const [showCalendar, setShowCalendar] = useState(true);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => toLocalDateStr(new Date()));
+  const [daySlots, setDaySlots] = useState<AvailableSlot[]>([]);
+  const [loadingDaySlots, setLoadingDaySlots] = useState(false);
+  const [userTimezone] = useState<string>(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  });
 
   // Edit Modal State
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
@@ -227,6 +254,67 @@ export const ScheduledAppointmentsSection: React.FC<ScheduledAppointmentsSection
   const completedCount = bookings.filter((b) => b.status === 'completed').length;
   const cancelledCount = bookings.filter((b) => b.status === 'cancelled').length;
 
+  // Group bookings by local YYYY-MM-DD date string for calendar badges
+  const bookingsByDate = useMemo(() => {
+    const map = new Map<string, Booking[]>();
+    bookings.forEach((b) => {
+      if (activeEventTypeFilter && b.eventTypeId !== activeEventTypeFilter) return;
+      const d = new Date(b.startTime);
+      if (isNaN(d.getTime())) return;
+      const key = toLocalDateStr(d);
+      const list = map.get(key) || [];
+      list.push(b);
+      map.set(key, list);
+    });
+    return map;
+  }, [bookings, activeEventTypeFilter]);
+
+  const selectedDayBookings = useMemo(() => {
+    return (bookingsByDate.get(selectedDateStr) || []).sort(
+      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+  }, [bookingsByDate, selectedDateStr]);
+
+  // Fetch available future slots for the selected calendar date
+  useEffect(() => {
+    if (!showCalendar || !selectedDateStr) return;
+    let mounted = true;
+    setLoadingDaySlots(true);
+    const targetEtId = activeEventTypeFilter || eventTypes[0]?.id || 'default';
+    api
+      .getAvailableSlots(targetEtId, selectedDateStr, userTimezone)
+      .then((res) => {
+        if (mounted) {
+          setDaySlots(res.slots || []);
+        }
+      })
+      .catch(() => {
+        if (mounted) setDaySlots([]);
+      })
+      .finally(() => {
+        if (mounted) setLoadingDaySlots(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [showCalendar, selectedDateStr, activeEventTypeFilter, eventTypes, userTimezone, bookings]);
+
+  // Calendar grid calculations
+  const calYear = calendarMonth.getFullYear();
+  const calMonth = calendarMonth.getMonth();
+  const calFirstDayIndex = new Date(calYear, calMonth, 1).getDay();
+  const calDaysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const calMonthLabel = calendarMonth.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const selectedDateDisplay = useMemo(() => {
+    const [y, m, d] = selectedDateStr.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }, [selectedDateStr]);
+
   return (
     <div id="scheduled-appointments-section" className="space-y-6 pt-4 border-t border-slate-200/80">
       {/* Section Header Banner */}
@@ -252,7 +340,20 @@ export const ScheduledAppointmentsSection: React.FC<ScheduledAppointmentsSection
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setShowCalendar((prev) => !prev)}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold shadow-2xs transition active:scale-95 ${
+              showCalendar
+                ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+            }`}
+            title="Toggle calendar and future slots view"
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            <span>{showCalendar ? 'Hide Calendar' : 'Calendar & Slots'}</span>
+          </button>
           <button
             onClick={onRefresh}
             title="Refresh bookings from server"
@@ -272,6 +373,210 @@ export const ScheduledAppointmentsSection: React.FC<ScheduledAppointmentsSection
           )}
         </div>
       </div>
+
+      {/* Interactive Calendar & Future Slots Panel */}
+      {showCalendar && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
+          {/* Left: Monthly Calendar Grid */}
+          <div className="lg:col-span-5 lg:border-r lg:border-slate-100 lg:pr-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">{calMonthLabel}</h3>
+                <p className="text-[11px] text-slate-500">Pick any date to inspect bookings & future slots</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+                    setSelectedDateStr(toLocalDateStr(now));
+                  }}
+                  className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition"
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalendarMonth(new Date(calYear, calMonth - 1, 1))}
+                  className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition"
+                  title="Previous month"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalendarMonth(new Date(calYear, calMonth + 1, 1))}
+                  className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition"
+                  title="Next month"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 mb-2">
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => (
+                <div key={d} className="py-1">{d}</div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: calFirstDayIndex }).map((_, i) => (
+                <div key={`empty-${i}`} className="h-10" />
+              ))}
+              {Array.from({ length: calDaysInMonth }).map((_, idx) => {
+                const dayNum = idx + 1;
+                const dateKey = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                const isSelected = dateKey === selectedDateStr;
+                const isToday = dateKey === todayStr;
+                const isPast = dateKey < todayStr;
+                const dayBookingsList = bookingsByDate.get(dateKey) || [];
+                const activeCount = dayBookingsList.filter((b) => b.status !== 'cancelled').length;
+
+                return (
+                  <button
+                    key={dateKey}
+                    type="button"
+                    onClick={() => setSelectedDateStr(dateKey)}
+                    className={`relative flex flex-col items-center justify-center h-10 rounded-xl text-xs font-bold transition ${
+                      isSelected
+                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                        : isToday
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                        : isPast
+                        ? 'text-slate-300 hover:bg-slate-50'
+                        : 'text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>{dayNum}</span>
+                    {activeCount > 0 && (
+                      <span
+                        className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
+                          isSelected ? 'bg-white' : 'bg-emerald-500'
+                        }`}
+                        title={`${activeCount} booked`}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  Has Bookings
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-blue-600" />
+                  Selected
+                </span>
+              </div>
+              <span className="font-medium text-slate-400 truncate max-w-[140px]">{userTimezone}</span>
+            </div>
+          </div>
+
+          {/* Right: Selected Day's Bookings & Future Open Slots */}
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-5">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-900">{selectedDateDisplay}</h4>
+                  <p className="text-[11px] text-slate-500">
+                    {selectedDayBookings.length} booked • {loadingDaySlots ? 'Checking slots...' : `${daySlots.length} open future slots`}
+                  </p>
+                </div>
+                {onNavigateToBooking && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigateToBooking(activeEventTypeFilter || undefined)}
+                    className="flex items-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-100 transition"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Book Slot</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Booked on this day */}
+              {selectedDayBookings.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Booked Appointments ({selectedDayBookings.length})
+                  </span>
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    {selectedDayBookings.map((b) => (
+                      <div
+                        key={b.id}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-emerald-200/80 bg-emerald-50/50 px-3 py-2 text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-bold text-emerald-800 shrink-0">
+                            {formatTime(b.startTime, b.inviteeTimezone)} – {formatTime(b.endTime, b.inviteeTimezone)}
+                          </span>
+                          <span className="font-semibold text-slate-800 truncate">{b.inviteeName}</span>
+                          {b.eventTypeName && (
+                            <span className="rounded-md bg-white border border-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 shrink-0">
+                              {b.eventTypeName}
+                            </span>
+                          )}
+                        </div>
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold capitalize text-emerald-700 shrink-0">
+                          {b.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Open Future Slots */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Available Future Slots
+                  </span>
+                  {!loadingDaySlots && (
+                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                      {daySlots.length} {daySlots.length === 1 ? 'slot' : 'slots'}
+                    </span>
+                  )}
+                </div>
+
+                {loadingDaySlots ? (
+                  <div className="flex items-center gap-2 py-6 justify-center text-xs text-slate-400">
+                    <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />
+                    <span>Loading available slots...</span>
+                  </div>
+                ) : daySlots.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 py-6 px-4 text-center text-xs text-slate-500">
+                    {selectedDateStr < todayStr
+                      ? 'Past date — select today or a future date to see open slots.'
+                      : 'No open slots available on this date (outside working hours or fully booked).'}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {daySlots.map((slot) => (
+                      <button
+                        key={slot.timeUtc}
+                        type="button"
+                        onClick={() => onNavigateToBooking?.(activeEventTypeFilter || undefined)}
+                        className="flex items-center justify-center gap-1 rounded-xl border border-blue-200/80 bg-blue-50/40 px-2.5 py-2 text-xs font-bold text-blue-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition"
+                        title={`Open slot at ${slot.timeFormatted} — click to book`}
+                      >
+                        <Clock className="h-3 w-3 shrink-0 opacity-70" />
+                        <span>{slot.timeFormatted}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filter and Search Controls */}
       <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
