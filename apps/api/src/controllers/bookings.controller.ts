@@ -80,20 +80,44 @@ export const bookingsController = {
         inviteeEmail,
         inviteeTimezone,
         startTime,
+        duration,
         customAnswers,
         paymentDetails,
       } = req.body;
 
-      if (!eventTypeId || !inviteeName || !inviteeEmail || !startTime) {
-        return res.status(400).json({ error: 'eventTypeId, inviteeName, inviteeEmail, and startTime are required' });
+      if (!eventTypeId || !startTime) {
+        return res.status(400).json({ error: 'eventTypeId and startTime are required' });
       }
 
-      const eventType = await prisma.eventType.findFirst({
+      const resolvedInviteeName = String(inviteeName || '').trim() || 'Guest';
+      const resolvedInviteeEmail = String(inviteeEmail || '').trim();
+
+      let eventType = await prisma.eventType.findFirst({
         where: {
           OR: [{ id: eventTypeId }, { slug: eventTypeId }],
         },
         include: { user: true },
       });
+
+      if (!eventType && eventTypeId === 'default') {
+        const defaultHost =
+          (hostUserId ? await prisma.user.findUnique({ where: { id: hostUserId } }) : null) ||
+          req.user ||
+          (await prisma.user.findFirst());
+
+        if (defaultHost) {
+          eventType = await prisma.eventType.create({
+            data: {
+              userId: defaultHost.id,
+              slug: 'default',
+              name: 'Appointment',
+              duration: Number(duration) > 0 ? Number(duration) : 30,
+              description: 'Scheduled via custom booking form',
+            },
+            include: { user: true },
+          });
+        }
+      }
 
       if (!eventType) {
         return res.status(404).json({ error: 'Event type not found' });
@@ -101,7 +125,8 @@ export const bookingsController = {
 
       const hostId = hostUserId || eventType.userId || (await prisma.user.findFirst())?.id;
       const start = new Date(startTime);
-      const end = new Date(start.getTime() + eventType.duration * 60 * 1000);
+      const effectiveDuration = Number(duration) > 0 ? Number(duration) : eventType.duration;
+      const end = new Date(start.getTime() + effectiveDuration * 60 * 1000);
       const now = new Date();
 
       // Past Date / Time Validation: strictly reject creating meetings in the past
@@ -158,8 +183,8 @@ export const bookingsController = {
         data: {
           eventTypeId: eventType.id,
           hostUserId: hostId,
-          inviteeName,
-          inviteeEmail,
+          inviteeName: resolvedInviteeName,
+          inviteeEmail: resolvedInviteeEmail,
           inviteeTimezone: inviteeTimezone || eventType.user?.timezone || 'America/New_York',
           startTime: start,
           endTime: end,
@@ -181,15 +206,15 @@ export const bookingsController = {
             status: paymentDetails?.status || 'paid',
             provider: paymentDetails?.provider || 'stripe',
             transactionId: paymentDetails?.transactionId || `tx_${Date.now().toString(36)}`,
-            customerEmail: inviteeEmail,
+            customerEmail: resolvedInviteeEmail,
           },
         });
       }
 
-      // Automatically sync or upsert Contact in CRM
-      if (hostId) {
+      // Automatically sync or upsert Contact in CRM when an email is provided
+      if (hostId && resolvedInviteeEmail) {
         const existingContact = await prisma.contact.findFirst({
-          where: { userId: hostId, email: inviteeEmail },
+          where: { userId: hostId, email: resolvedInviteeEmail },
         });
 
         if (existingContact) {
@@ -205,8 +230,8 @@ export const bookingsController = {
           await prisma.contact.create({
             data: {
               userId: hostId,
-              name: inviteeName,
-              email: inviteeEmail,
+              name: resolvedInviteeName,
+              email: resolvedInviteeEmail,
               timezone: inviteeTimezone,
               tagsJson: JSON.stringify(['Inbound Lead', eventType.requiresPayment ? 'Paying Client' : 'Free Consultation']),
               totalBookings: 1,
@@ -223,7 +248,7 @@ export const bookingsController = {
           userId: hostId,
           bookingId: newBooking.id,
           type: 'BOOKING_CREATED',
-          recipient: inviteeEmail,
+          recipient: resolvedInviteeEmail || resolvedInviteeName,
           description: `Booking confirmed for ${eventType.name} on ${start.toDateString()}`,
         },
       });

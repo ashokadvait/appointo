@@ -24,6 +24,8 @@ import {
   Share2,
   X,
   Check,
+  Pencil,
+  RotateCcw,
 } from 'lucide-react';
 
 interface CustomFormsViewProps {
@@ -32,14 +34,20 @@ interface CustomFormsViewProps {
   onRefreshEventTypes?: () => void;
 }
 
-const TEMPLATES: {
+interface IndustryTemplate {
+  id: string;
   name: string;
   org: string;
   desc: string;
   tag: string;
   fields: IntakeQuestion[];
-}[] = [
+}
+
+const TEMPLATES_STORAGE_KEY = 'appointo_industry_templates';
+
+const DEFAULT_TEMPLATES: IndustryTemplate[] = [
   {
+    id: 'tpl-tech',
     name: 'Tech & Architecture Discovery',
     org: 'Acme Cloud Engineering',
     tag: 'Engineering / Dev',
@@ -92,6 +100,7 @@ const TEMPLATES: {
     ],
   },
   {
+    id: 'tpl-saas',
     name: 'B2B SaaS Sales & Qualification',
     org: 'SaaS Platform Sales',
     tag: 'B2B Sales',
@@ -145,6 +154,7 @@ const TEMPLATES: {
     ],
   },
   {
+    id: 'tpl-health',
     name: 'Clinic & Healthcare Intake',
     org: 'Wellness & Health Clinic',
     tag: 'Healthcare / Medical',
@@ -194,6 +204,7 @@ const TEMPLATES: {
     ],
   },
   {
+    id: 'tpl-hr',
     name: 'Recruitment & Candidate Screening',
     org: 'Talent & People Ops',
     tag: 'HR / Recruitment',
@@ -239,6 +250,7 @@ const TEMPLATES: {
     ],
   },
   {
+    id: 'tpl-blank',
     name: 'Blank Custom Form',
     org: 'Custom Organization',
     tag: 'Custom',
@@ -269,6 +281,35 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
 
+  // Editable Quick Industry Templates state (persisted in localStorage)
+  const [templates, setTemplates] = useState<IndustryTemplate[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch {
+        // fallback to defaults
+      }
+    }
+    return DEFAULT_TEMPLATES;
+  });
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [templateTag, setTemplateTag] = useState('');
+
+  const persistTemplates = (next: IndustryTemplate[]) => {
+    setTemplates(next);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore storage quota errors
+      }
+    }
+  };
+
   // Form Editor State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -296,9 +337,9 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
         const initial = data[0];
         setSelectedFormId(initial.id);
         populateForm(initial);
-      } else {
+      } else if (templates.length > 0) {
         // Fallback to first template
-        applyTemplate(TEMPLATES[0]);
+        applyTemplate(templates[0]);
       }
     } catch (err: any) {
       console.error(err);
@@ -322,16 +363,111 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
   };
 
   const handleSelectForm = (id: string) => {
+    setEditingTemplateId(null);
     setSelectedFormId(id);
     const found = forms.find((f) => f.id === id);
     if (found) populateForm(found);
   };
 
-  const applyTemplate = (tpl: typeof TEMPLATES[0]) => {
+  const applyTemplate = (tpl: IndustryTemplate) => {
     setTitle(tpl.name);
     setOrganizationName(tpl.org);
     setDescription(tpl.desc);
     setFields(tpl.fields.map((f) => ({ ...f, id: `q-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 5)}` })));
+  };
+
+  const handleEditTemplate = (tpl: IndustryTemplate) => {
+    setEditingTemplateId(tpl.id);
+    setTemplateTag(tpl.tag);
+    setTitle(tpl.name);
+    setOrganizationName(tpl.org);
+    setDescription(tpl.desc);
+    setFields(tpl.fields.map((f) => ({ ...f })));
+    showToast(`Editing template "${tpl.name}". Make your changes and click Save Template.`, 'info');
+  };
+
+  const handleSaveTemplateChanges = () => {
+    if (!editingTemplateId) return;
+    if (!title.trim()) {
+      showAlert({
+        title: 'Template Name Required',
+        message: 'Please provide a name for this template.',
+        type: 'warning',
+      });
+      return;
+    }
+    const updated = templates.map((t) =>
+      t.id === editingTemplateId
+        ? {
+            ...t,
+            name: title.trim(),
+            org: organizationName.trim() || t.org,
+            desc: description.trim(),
+            tag: templateTag.trim() || t.tag,
+            fields,
+          }
+        : t
+    );
+    persistTemplates(updated);
+    showToast(`Template "${title.trim()}" updated!`, 'success');
+    setEditingTemplateId(null);
+  };
+
+  const handleDeleteTemplate = async (tpl: IndustryTemplate) => {
+    const confirmed = await showConfirm({
+      title: 'Delete Template?',
+      message: `Are you sure you want to remove "${tpl.name}" from Quick Industry Templates?`,
+      confirmText: 'Delete Template',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    const remaining = templates.filter((t) => t.id !== tpl.id);
+    persistTemplates(remaining);
+    if (editingTemplateId === tpl.id) {
+      setEditingTemplateId(null);
+    }
+    showToast(`Template "${tpl.name}" deleted.`, 'success');
+  };
+
+  const handleSaveCurrentAsTemplate = () => {
+    if (!title.trim()) {
+      showAlert({
+        title: 'Form Title Required',
+        message: 'Please enter a Form Title before saving it as a template.',
+        type: 'warning',
+      });
+      return;
+    }
+    const tplId = selectedFormId || `tpl-${Date.now().toString(36)}`;
+    const newTpl: IndustryTemplate = {
+      id: tplId,
+      name: title.trim(),
+      org: organizationName.trim() || 'Custom',
+      desc: description.trim(),
+      tag: (organizationName.trim() || 'Custom').slice(0, 24),
+      fields: fields.map((f) => ({ ...f })),
+    };
+    const exists = templates.some((t) => t.id === tplId);
+    const next = exists
+      ? templates.map((t) => (t.id === tplId ? newTpl : t))
+      : [newTpl, ...templates];
+    persistTemplates(next);
+    showToast(`Saved "${title.trim()}" to Quick Industry Templates!`, 'success');
+  };
+
+  const handleResetTemplates = async () => {
+    const confirmed = await showConfirm({
+      title: 'Restore Default Templates?',
+      message: 'This will restore all 5 built-in Quick Industry Templates to their original defaults.',
+      confirmText: 'Restore Defaults',
+      cancelText: 'Cancel',
+    });
+    if (!confirmed) return;
+    persistTemplates(DEFAULT_TEMPLATES);
+    setEditingTemplateId(null);
+    showToast('Default templates restored.', 'success');
   };
 
   const handleCreateNewForm = () => {
@@ -410,6 +546,23 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
       }
 
       showToast(`Form "${title}" saved successfully!`, 'success');
+
+      // Also sync the saved form into Quick Industry Templates so it can be reused/edited/deleted there
+      const syncedTemplate: IndustryTemplate = {
+        id: saved.id,
+        name: saved.title || title.trim(),
+        org: saved.organizationName || organizationName.trim() || 'Custom',
+        desc: saved.description || description.trim() || '',
+        tag: (saved.organizationName || organizationName.trim() || 'Custom').slice(0, 24),
+        fields: saved.fields || fields,
+      };
+      const existingTplIdx = templates.findIndex((t) => t.id === saved.id);
+      const nextTemplates =
+        existingTplIdx >= 0
+          ? templates.map((t, idx) => (idx === existingTplIdx ? syncedTemplate : t))
+          : [syncedTemplate, ...templates];
+      persistTemplates(nextTemplates);
+
       // Refresh form list
       const updatedForms = await api.getCustomForms();
       setForms(updatedForms);
@@ -456,27 +609,13 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
         setSelectedFormId(next.id);
         populateForm(next);
       } else {
-        const newId = `form-${Date.now().toString(36)}`;
-        const freshForm: CustomBookingForm = {
-          id: newId,
-          title: 'Custom Booking Form',
-          description: 'Please answer these questions to help us tailor our meeting.',
-          organizationName: 'Our Organization',
-          isDefault: true,
-          targetEventTypeIds: [],
-          fields: [
-            {
-              id: 'q-1',
-              label: 'What is the primary topic you would like to discuss?',
-              type: 'text',
-              placeholder: 'e.g. Project kick-off, discovery, consultation',
-              required: true,
-            },
-          ],
-        };
-        setForms([freshForm]);
-        setSelectedFormId(newId);
-        populateForm(freshForm);
+        setSelectedFormId('');
+        setTitle('');
+        setDescription('');
+        setOrganizationName('');
+        setIsDefault(false);
+        setTargetEventTypeIds([]);
+        setFields([]);
       }
     } catch (err: any) {
       showAlert({
@@ -583,12 +722,14 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
 
           <button
             type="button"
-            onClick={handleSaveForm}
+            onClick={editingTemplateId ? handleSaveTemplateChanges : handleSaveForm}
             disabled={isSaving}
             className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition active:scale-98 disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
+            <span>
+              {editingTemplateId ? 'Save Template' : isSaving ? 'Saving...' : 'Save Form'}
+            </span>
           </button>
         </div>
       </div>
@@ -630,6 +771,17 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
                       >
                         {f.fields?.length || 0} fields
                       </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectForm(f.id);
+                      }}
+                      className="rounded-lg p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition shrink-0"
+                      title={`Edit "${f.title}"`}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
@@ -740,6 +892,44 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
               <span>Form & Organization Settings</span>
             </h3>
 
+            {editingTemplateId && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-amber-900">
+                    Editing Template
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingTemplateId(null)}
+                      className="rounded-lg border border-amber-300 bg-white px-2 py-1 text-[10px] font-bold text-amber-800 hover:bg-amber-100 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveTemplateChanges}
+                      className="rounded-lg bg-amber-600 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-amber-700 transition"
+                    >
+                      Save Template
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-amber-800 mb-1">
+                    Category Tag
+                  </label>
+                  <input
+                    type="text"
+                    value={templateTag}
+                    onChange={(e) => setTemplateTag(e.target.value)}
+                    placeholder="e.g. Engineering / Dev"
+                    className="w-full rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Form Title *
@@ -837,39 +1027,114 @@ export const CustomFormsView: React.FC<CustomFormsViewProps> = ({
 
           {/* Quick Organizational Presets */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-amber-500" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Quick Industry Templates
-              </h3>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-amber-500" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Quick Industry Templates
+                </h3>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleSaveCurrentAsTemplate}
+                  className="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700 hover:bg-blue-100 transition"
+                  title="Save current form into Quick Industry Templates"
+                >
+                  <Plus className="h-3 w-3" />
+                  <span>Add Current</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetTemplates}
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
+                  title="Restore default industry templates"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  <span>Reset</span>
+                </button>
+              </div>
             </div>
             <p className="text-[11px] text-slate-500 leading-tight">
-              One-click organizational blueprints. Click to load preset inputs:
+              One-click organizational blueprints. Click to load, edit, or delete templates:
             </p>
 
-            <div className="space-y-2">
-              {TEMPLATES.map((tpl) => (
+            {templates.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center space-y-2">
+                <p className="text-xs text-slate-500">No templates left.</p>
                 <button
-                  key={tpl.name}
                   type="button"
-                  onClick={() => {
-                    applyTemplate(tpl);
-                    showToast(`Loaded ${tpl.name} template`, 'info');
-                  }}
-                  className="w-full text-left rounded-xl border border-slate-200 p-2.5 hover:border-blue-400 hover:bg-blue-50/30 transition group"
+                  onClick={handleResetTemplates}
+                  className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 group-hover:text-blue-600">
-                      {tpl.name}
-                    </span>
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 uppercase">
-                      {tpl.tag}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[10px] text-slate-500 line-clamp-1">{tpl.desc}</p>
+                  <RotateCcw className="h-3 w-3" />
+                  <span>Restore Defaults</span>
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {templates.map((tpl) => {
+                  const isEditingThis = editingTemplateId === tpl.id;
+                  return (
+                    <div
+                      key={tpl.id}
+                      className={`rounded-xl border p-2.5 transition group ${
+                        isEditingThis
+                          ? 'border-amber-400 bg-amber-50/40'
+                          : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/30'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingTemplateId(null);
+                            applyTemplate(tpl);
+                            showToast(`Loaded ${tpl.name} template`, 'info');
+                          }}
+                          className="flex-1 text-left min-w-0"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-bold text-slate-800 group-hover:text-blue-600 truncate">
+                              {tpl.name}
+                            </span>
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 uppercase shrink-0">
+                              {tpl.tag}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[10px] text-slate-500 line-clamp-1">{tpl.desc}</p>
+                        </button>
+
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditTemplate(tpl);
+                            }}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition"
+                            title={`Edit "${tpl.name}" template`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTemplate(tpl);
+                            }}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                            title={`Delete "${tpl.name}" template`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 

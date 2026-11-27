@@ -682,36 +682,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                 <p className="mt-1 text-xs text-slate-500 leading-relaxed">{formDescription}</p>
               </div>
 
-              {/* Invitee Base Inputs (Static Calendly info) */}
+              {/* Live Preview Form (renders only configured fields when present) */}
               <form onSubmit={handleTestPreviewSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-100">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Your Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Jane Doe"
-                      value={previewAnswers['base-name'] || ''}
-                      onChange={(e) => setPreviewAnswers({ ...previewAnswers, 'base-name': e.target.value })}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="jane@example.com"
-                      value={previewAnswers['base-email'] || ''}
-                      onChange={(e) => setPreviewAnswers({ ...previewAnswers, 'base-email': e.target.value })}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Customized Intake Fields Rendered Live */}
                 {fields.length === 0 ? (
                   <div className="py-6 text-center text-xs text-slate-400 italic">
                     No custom questions configured. Add elements from the &quot;Customize Form&quot; tab.

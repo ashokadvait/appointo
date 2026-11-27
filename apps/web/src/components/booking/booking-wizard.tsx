@@ -405,11 +405,31 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
 
     setIsSubmitting(true);
     try {
+      const hasCustomFields = activeQuestions && activeQuestions.length > 0;
+      const findAnswer = (matcher: (q: IntakeQuestion) => boolean): string => {
+        const match = activeQuestions.find(matcher);
+        if (!match) return '';
+        const val = customAnswers[match.id];
+        return typeof val === 'string' ? val.trim() : '';
+      };
+
+      const resolvedName = hasCustomFields
+        ? findAnswer((q) => /name/i.test(q.label)) ||
+          findAnswer((q) => q.type === 'text') ||
+          inviteeName.trim() ||
+          'Guest'
+        : inviteeName.trim();
+
+      const resolvedEmail = hasCustomFields
+        ? findAnswer((q) => q.type === 'email' || /email|mail/i.test(q.label)) ||
+          inviteeEmail.trim()
+        : inviteeEmail.trim();
+
       const activeEventTypeId = currentEventType?.id || 'default';
       const res = await api.createBooking({
         eventTypeId: activeEventTypeId,
-        inviteeName,
-        inviteeEmail,
+        inviteeName: resolvedName,
+        inviteeEmail: resolvedEmail,
         inviteeTimezone: timezone,
         startTime: selectedSlot.timeUtc,
         duration: selectedSlot.duration || slotDuration,
@@ -1074,44 +1094,46 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
               </div>
 
               <form onSubmit={handleBookingSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Your Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={inviteeName}
-                      onChange={(e) => setInviteeName(e.target.value)}
-                      placeholder="Jane Doe"
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
+                {(!activeQuestions || activeQuestions.length === 0) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Your Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={inviteeName}
+                        onChange={(e) => setInviteeName(e.target.value)}
+                        placeholder="Jane Doe"
+                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={inviteeEmail}
+                        onChange={(e) => setInviteeEmail(e.target.value)}
+                        placeholder="jane@example.com"
+                        className="mt-1.5 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={inviteeEmail}
-                      onChange={(e) => setInviteeEmail(e.target.value)}
-                      placeholder="jane@example.com"
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Custom Intake Questions Rendered Dynamically */}
                 {activeQuestions && activeQuestions.length > 0 && (
-                  <div className="space-y-4 pt-2 border-t border-slate-100">
+                  <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                         Organization Intake Details
                       </span>
                       <span className="rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5">
-                        {activeQuestions.length} Questions
+                        {activeQuestions.length} {activeQuestions.length === 1 ? 'Question' : 'Questions'}
                       </span>
                     </div>
 

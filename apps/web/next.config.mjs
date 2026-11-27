@@ -15,14 +15,14 @@ const nextConfig = {
       return [];
     }
     return {
-      beforeFiles: [],
-      afterFiles: [],
-      fallback: [
+      beforeFiles: [
         {
           source: '/api/:path*',
           destination: 'http://localhost:4000/api/:path*',
         },
       ],
+      afterFiles: [],
+      fallback: [],
     };
   },
 };
